@@ -12,12 +12,6 @@ namespace TDictionary
         {
             TeodorDictionary<string, int> dict = new TeodorDictionary<string, int>(20);
 
-            Console.WriteLine(dict.HashKey("aaa"));
-            Console.WriteLine(dict.HashKey("aaa"));
-            Console.WriteLine(dict.HashKey("bb35g33 d"));
-            Console.WriteLine(dict.HashKey("feasf"));
-            Console.WriteLine(dict.HashKey("aahdthdt"));
-
             Console.ReadLine();
         }
     }

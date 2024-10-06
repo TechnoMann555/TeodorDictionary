@@ -62,6 +62,7 @@ namespace TDictionary
 			LinkedList<KeyValuePair<TKey, TValue>>[] newTable = new LinkedList<KeyValuePair<TKey, TValue>>[table.Length*2];
 			int newUsedBucketCount = 0;
 
+			// Iterate through the original hash-table's key-value pairs
 			foreach(KeyValuePair<TKey, TValue> pair in this)
             {
 				int bucketItemCount;

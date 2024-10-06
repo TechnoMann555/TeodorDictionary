@@ -57,10 +57,11 @@ namespace TDictionary
 			return this.HashFunction(key) % TotalBucketCount;
         }
 
+		// INSERTION
 		// Inserts a new key-value pair into the hash table
 		public void Insert(TKey key, TValue value)
         {
-			int arrayIndex = HashKey(key);
+			int arrayIndex = this.HashKey(key);
 			KeyValuePair<TKey, TValue> newPair = new KeyValuePair<TKey, TValue>(key, value);
 
 			// If the bucket is empty, create a new linked list
@@ -91,14 +92,17 @@ namespace TDictionary
 			itemCount++;
         }
 
+		// FETCHING
+		// Gets the value from the key-value pair that holds the passed key value
 		public TValue GetValue(TKey key)
         {
-			int arrayIndex = HashKey(key);
-			LinkedList<KeyValuePair<TKey, TValue>> bucketList = table[arrayIndex];
+			int arrayIndex = this.HashKey(key);
 
 			// The bucket is empty
-			if(bucketList == null)
+			if(table[arrayIndex] == null)
 				throw new ArgumentException("An item with the given key does not exist!");
+
+			LinkedList<KeyValuePair<TKey, TValue>> bucketList = table[arrayIndex];
 
 			// Only one item is in the bucket - therefore, no collision had occured 
 			if(bucketList.Count == 1)
@@ -119,6 +123,95 @@ namespace TDictionary
 				// No matching pair has been found
 				throw new ArgumentException("An item with the given key does not exist!");
             }
+		}
+
+		// Checks if a key-value pair exists with the passed key value
+		public bool CheckIfExists(TKey key)
+		{
+			int arrayIndex = this.HashKey(key);
+			LinkedList<KeyValuePair<TKey, TValue>> bucketList = table[arrayIndex];
+
+			// The bucket is empty - therefore, no key exists in it
+			if(bucketList == null)
+			{
+				return false;
+			}
+
+			// The bucket contains one pair - check if the key matches
+			else if(bucketList.Count == 1)
+			{
+				if(bucketList.First.Value.Key.Equals(key))
+					return true;
+			}
+
+			// The bucket contains multiple pairs - check if there's one that matches
+			else
+            {
+				foreach(KeyValuePair<TKey, TValue> pair in bucketList)
+                {
+					if(pair.Key.Equals(key))
+						return true;
+                }
+			}
+
+			return false;
+		}
+
+		// UPDATING
+		// Updates the key-value pair's value that has the passed key value
+		public void Update(TKey key, TValue value)
+		{
+			int arrayIndex = this.HashKey(key);
+			LinkedList<KeyValuePair<TKey, TValue>> bucketList = table[arrayIndex];
+
+			// The bucket is empty
+			if(bucketList == null)
+				throw new ArgumentException("An item with the given key does not exist!");
+
+			KeyValuePair<TKey, TValue> updatedPair = new KeyValuePair<TKey, TValue>(key, value);
+
+			// The bucket contains one pair - check if the key matches
+			if(bucketList.Count == 1)
+			{
+				// LinkedList<T>.Remove(T) is an O(n) operation, since it performs a linear search first,
+				// while LinkedList<T>.Remove<LinkedListNode<T>> is an O(1) operation,
+				// which is why this method works with LinkedListNodes
+				LinkedListNode<KeyValuePair<TKey, TValue>> onlyPair = bucketList.First;
+
+				// The pair's key doesn't match the passed key value
+				if(!onlyPair.Value.Key.Equals(key))
+					throw new ArgumentException("An item with the given key does not exist!");
+
+				// The key matches - insert a new pair and remove the original
+				bucketList.AddLast(updatedPair);
+				bucketList.Remove(onlyPair);
+			}
+
+			// The bucket contains multiple pairs - check if there's one that matches
+			else
+			{
+				LinkedListNode<KeyValuePair<TKey, TValue>> node = bucketList.First;
+
+				// The for-each loop iterates through a linked list's node values (key-value pairs),
+				// which is why this iteration uses the for loop to iterate through nodes themselves
+				for(
+					int i = 0;
+					i < bucketList.Count;
+					i++, node = node.Next
+				)
+				{
+					// The key matches - insert a new pair and remove the original
+					if(node.Value.Key.Equals(key))
+                    {
+						bucketList.AddAfter(node, updatedPair);
+						bucketList.Remove(node);
+						return;
+                    }
+                }
+
+				// No matching pair has been found
+				throw new ArgumentException("An item with the given key does not exist!");
+			}
 		}
 
 		// METHOD MADE FOR TESTING - prints the entire hash table structure

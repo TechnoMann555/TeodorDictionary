@@ -10,24 +10,23 @@ namespace TDictionary
     {
         static void Main(string[] args)
         {
-            TeodorDictionary<string, int> dict = new TeodorDictionary<string, int>(20);
+            TeodorDictionary<string, int> dict = new TeodorDictionary<string, int>(2);
 
-            try
-            {
-                dict.Insert("Beograd", 1000000);
-                dict.Insert("Novi Sad", 2000000);
-                dict.Insert("aAFAEF", 3000000);
+            dict.Insert("Beograd", 1000000);
+            dict.Insert("Novi Sad", 1500000);
+            dict.Insert("Novi SAd", 1500000);
+            dict.Insert("Jovanovac", 2000000);
 
-                Console.WriteLine(dict.GetValue("Beograd"));
-                Console.WriteLine(dict.GetValue("Novi Sad"));
-                Console.WriteLine(dict.GetValue("aAFAEF"));
+            dict.PrintList();
+                
+            dict.Update("Beograd", 3000000);
+            dict.Update("Novi Sad", 3000000);
+            dict.Update("Novi SAd", 3000000);
+            dict.Update("Jovanovac", 3000000);
 
-                dict.PrintList();
-            }
-            catch(Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
+            dict.PrintList();
+                
+            dict.Update("Dobrovac", 3000000);
 
             Console.ReadLine();
         }

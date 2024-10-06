@@ -31,7 +31,6 @@ namespace TDictionary
             }
 
             dict.PrintList();
-            Console.WriteLine($"Items: {dict.Count}, Used buckets: {dict.UsedBucketCount}/{dict.TotalBucketCount}");
 
             Console.WriteLine("=== FETCHING === ");
             Console.WriteLine(dict.FetchValue("WXMAX"));
@@ -67,19 +66,14 @@ namespace TDictionary
             {
                 Console.WriteLine(ex.Message);
             }
-            Console.WriteLine($"Items: {dict.Count}, Used buckets: {dict.UsedBucketCount}/{dict.TotalBucketCount}");
 
             dict.PrintList();
 
             Console.WriteLine("=== REMOVING ===");
             Console.WriteLine(dict.Remove("WXMAX"));
-            Console.WriteLine($"Items: {dict.Count}, Used buckets: {dict.UsedBucketCount}/{dict.TotalBucketCount}");
             Console.WriteLine(dict.Remove("ZNPKP"));
-            Console.WriteLine($"Items: {dict.Count}, Used buckets: {dict.UsedBucketCount}/{dict.TotalBucketCount}");
             Console.WriteLine(dict.Remove("OVBDF"));
-            Console.WriteLine($"Items: {dict.Count}, Used buckets: {dict.UsedBucketCount}/{dict.TotalBucketCount}");
             Console.WriteLine(dict.Remove("AAAAAAAAA"));
-            Console.WriteLine($"Items: {dict.Count}, Used buckets: {dict.UsedBucketCount}/{dict.TotalBucketCount}");
 
             dict.PrintList();
 
@@ -91,7 +85,6 @@ namespace TDictionary
 
             dict["OVBDF"] = 1;
             dict.PrintList();
-            Console.WriteLine($"Items: {dict.Count}, Used buckets: {dict.UsedBucketCount}/{dict.TotalBucketCount}");
 
             Console.WriteLine("=== FETCHING ===");
             Console.WriteLine(dict["WXMAX"]);
@@ -103,7 +96,6 @@ namespace TDictionary
             dict["ZNPKP"] = 200;
             dict["OVBDF"] = 200;
             dict.PrintList();
-            Console.WriteLine($"Items: {dict.Count}, Used buckets: {dict.UsedBucketCount}/{dict.TotalBucketCount}");
 
             Console.WriteLine("=== ITERATING ===");
             foreach(KeyValuePair<string, int> pair in dict)
@@ -119,12 +111,10 @@ namespace TDictionary
             dict["OVBDF"] = 200;
 
             dict.PrintList();
-            Console.WriteLine($"Items: {dict.Count}, Used buckets: {dict.UsedBucketCount}/{dict.TotalBucketCount}");
 
             dict["NJXAU"] = 300;
 
             dict.PrintList();
-            Console.WriteLine($"Items: {dict.Count}, Used buckets: {dict.UsedBucketCount}/{dict.TotalBucketCount}");
 
             Console.WriteLine("=== CLEARING ===");
             dict = new TeodorDictionary<string, int>(10);
@@ -134,7 +124,6 @@ namespace TDictionary
             dict.PrintList();
             dict.Clear();
             dict.PrintList();
-            Console.WriteLine($"Items: {dict.Count}, Used buckets: {dict.UsedBucketCount}/{dict.TotalBucketCount}");
 
             Console.ReadLine();
         }

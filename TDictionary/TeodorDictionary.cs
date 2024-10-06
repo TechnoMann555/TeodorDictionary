@@ -29,10 +29,7 @@ namespace TDictionary
 		public int Count
 		{ get { return itemCount; } }
 
-		public int UsedBucketCount
-		{ get { return usedBuckets; } }
-
-		public int TotalBucketCount
+		private int TotalBucketCount
 		{ get { return table.Length; } }
 
 

@@ -10,7 +10,7 @@ namespace TDictionary
 		private int itemCount = 0;
 		private int usedBuckets = 0;
 
-		private const double maxLoadFactor = 0.7;
+		private const int maxBucketCount = 7;
 		private const int defaultInitialSize = 10;
 
 		// The Seperate Chaining collision resolution policy requires us
@@ -23,23 +23,23 @@ namespace TDictionary
 		}
 
 		public TeodorDictionary(int initialSize)
-        {
+		{
 			table = new LinkedList<KeyValuePair<TKey, TValue>>[initialSize];
 		}
 
 		public int Count
-        { get { return itemCount; } }
+		{ get { return itemCount; } }
+
+		public int UsedBuckets
+		{ get { return usedBuckets; } }
 
 		private int TotalBucketCount
-        { get { return table.Length; } }
+		{ get { return table.Length; } }
 
-		private double LoadFactor
-        { get { return (double)usedBuckets / TotalBucketCount; } }
 
-		
 		// Gets the hash code of a given object
 		private int HashFunction(object val)
-        {
+		{
 			// The System.Object.GetHashCode() method allows us
 			// to get the hash code of an object of any type.
 			int hashingResult = val.GetHashCode();
@@ -47,34 +47,53 @@ namespace TDictionary
 			// In order to properly calculate the array index from the hash code
 			// using the modulo operator, the resulting hash value must be a positive integer.
 			return hashingResult * ((hashingResult < 0) ? (-1) : 1);
-        }
+		}
 
 		// Calculates the table array index from a given key value
 		private int HashKey(TKey key)
-        {
+		{
 			return this.HashFunction(key) % TotalBucketCount;
-        }
+		}
+
+		// Rehashes the hash-table when any bucket's item count passes the defined threshold
+		private void Rehash()
+		{
+
+		}
 
 		// INSERTION
-		// Inserts a new key-value pair into the hash table
-		public void Insert(TKey key, TValue value)
-        {
+
+		private enum InsertStatusCode
+		{
+			OK, // Key-value pair successfully inserted
+			DuplicateKey // The key already exists in the hash table
+		}
+
+
+		private InsertStatusCode InsertIntoHashTable(
+			TKey key,
+			TValue value,
+			LinkedList<KeyValuePair<TKey, TValue>>[] insertionTable,
+			out bool listCreated
+		)
+		{
 			int arrayIndex = this.HashKey(key);
 			KeyValuePair<TKey, TValue> newPair = new KeyValuePair<TKey, TValue>(key, value);
+			listCreated = false;
 
 			// If the bucket is empty, create a new linked list
-			if(table[arrayIndex] == null)
-            {
-				table[arrayIndex] = new LinkedList<KeyValuePair<TKey, TValue>>();
+			if(insertionTable[arrayIndex] == null)
+			{
+				insertionTable[arrayIndex] = new LinkedList<KeyValuePair<TKey, TValue>>();
+				listCreated = true;
 			}
-				
-			LinkedList<KeyValuePair<TKey, TValue>> bucketList = table[arrayIndex];
+
+			LinkedList<KeyValuePair<TKey, TValue>> bucketList = insertionTable[arrayIndex];
 
 			// Bucket list is empty - add the first node
 			if(bucketList.Count == 0)
 			{
 				bucketList.AddFirst(newPair);
-				usedBuckets++;
 			}
 			else
 			{
@@ -82,56 +101,78 @@ namespace TDictionary
 				foreach(KeyValuePair<TKey, TValue> pair in bucketList)
 				{
 					if(pair.Key.Equals(newPair.Key))
-                    {
-						throw new ArgumentException("An item with the given key already exists!");
+					{
+						return InsertStatusCode.DuplicateKey;
 					}
 				}
 				// Add the new pair to the end of the list
 				bucketList.AddLast(newPair);
 			}
 
-			itemCount++;
-        }
+			return InsertStatusCode.OK;
+		}
+
+		// Inserts a new key-value pair into the dictionary
+		public void Insert(TKey key, TValue value)
+		{
+			bool listCreated;
+			InsertStatusCode returnStatus = this.InsertIntoHashTable(key, value, this.table, out listCreated);
+
+			switch(returnStatus)
+			{
+				case InsertStatusCode.OK:
+				itemCount++;
+				break;
+				case InsertStatusCode.DuplicateKey:
+				throw new ArgumentException("An item with the given key already exists!");
+				break;
+			}
+
+			if(listCreated)
+			{
+				usedBuckets++;
+			}
+		}
 
 		// FETCHING
 		// Gets the value from the key-value pair that holds the passed key value
 		public TValue GetValue(TKey key)
-        {
+		{
 			int arrayIndex = this.HashKey(key);
 			LinkedList<KeyValuePair<TKey, TValue>> bucketList = table[arrayIndex];
 
 			// The bucket is empty
 			if(bucketList == null)
-            {
+			{
 				throw new ArgumentException("An item with the given key does not exist!");
 			}
 
 			// Only one item is in the bucket - check if the key matches
 			if(bucketList.Count == 1)
-            {
+			{
 				if(!bucketList.First.Value.Key.Equals(key))
-                {
+				{
 					throw new ArgumentException("An item with the given key does not exist!");
 				}
 
 				return bucketList.First.Value.Value;
-            }
+			}
 
 			// Multiple items are in the same bucket - therefore,
 			// collisions had occured, so search for the matching key-value pair
 			else
-            {
+			{
 				foreach(KeyValuePair<TKey, TValue> pair in bucketList)
-                {
+				{
 					if(pair.Key.Equals(key))
-                    {
+					{
 						return pair.Value;
 					}
 				}
 
 				// No matching pair has been found
 				throw new ArgumentException("An item with the given key does not exist!");
-            }
+			}
 		}
 
 		// Checks if a key-value pair exists with the passed key value
@@ -150,21 +191,21 @@ namespace TDictionary
 			else if(bucketList.Count == 1)
 			{
 				if(bucketList.First.Value.Key.Equals(key))
-                {
+				{
 					return true;
 				}
 			}
 
 			// The bucket contains multiple pairs - check if there's one that matches
 			else
-            {
+			{
 				foreach(KeyValuePair<TKey, TValue> pair in bucketList)
-                {
+				{
 					if(pair.Key.Equals(key))
-                    {
+					{
 						return true;
 					}
-                }
+				}
 			}
 
 			return false;
@@ -179,7 +220,7 @@ namespace TDictionary
 
 			// The bucket is empty
 			if(bucketList == null)
-            {
+			{
 				throw new ArgumentException("An item with the given key does not exist!");
 			}
 
@@ -195,7 +236,7 @@ namespace TDictionary
 
 				// The pair's key doesn't match the passed key value
 				if(!onlyPair.Value.Key.Equals(key))
-                {
+				{
 					throw new ArgumentException("An item with the given key does not exist!");
 				}
 
@@ -219,12 +260,12 @@ namespace TDictionary
 				{
 					// The key matches - insert a new pair and remove the original
 					if(node.Value.Key.Equals(key))
-                    {
+					{
 						bucketList.AddAfter(node, updatedPair);
 						bucketList.Remove(node);
 						return;
-                    }
-                }
+					}
+				}
 
 				// No matching pair has been found
 				throw new ArgumentException("An item with the given key does not exist!");
@@ -234,7 +275,7 @@ namespace TDictionary
 		// DELETION
 		// Deletes the key-value pair that has the passed key value
 		public bool Remove(TKey key)
-        {
+		{
 			int arrayIndex = this.HashKey(key);
 			LinkedList<KeyValuePair<TKey, TValue>> bucketList = table[arrayIndex];
 
@@ -248,7 +289,7 @@ namespace TDictionary
 			else if(bucketList.Count == 1)
 			{
 				if(bucketList.First.Value.Key.Equals(key))
-                {
+				{
 					// There's no need for a bucket to store an empty linked list
 					table[arrayIndex] = null;
 					itemCount--;
@@ -262,7 +303,7 @@ namespace TDictionary
 			else
 			{
 				LinkedListNode<KeyValuePair<TKey, TValue>> node = bucketList.First;
-				
+
 				// Iterate through linked list nodes
 				for(
 					int i = 0;
@@ -286,67 +327,67 @@ namespace TDictionary
 		}
 
 		public TValue this[TKey key]
-        {
+		{
 			get
-            {
+			{
 				return this.GetValue(key);
-            }
+			}
 
 			// Whether we insert or update a key-value pair depends
 			// on if the key-value pair exists in the table or not
-            set
-            {
+			set
+			{
 				// If the key-value pair exists - update it
 				if(this.CheckIfExists(key))
-                {
+				{
 					this.Update(key, value);
-                }
+				}
 
-                // If it doesn't exist - insert it
+				// If it doesn't exist - insert it
 				else
-                {
+				{
 					this.Insert(key, value);
-                }
-            }
-        }
+				}
+			}
+		}
 
 		// IEnumerable implementation
 		public TeodorDictionaryEnumerator<TKey, TValue> GetEnumerator()
-        {
+		{
 			return new TeodorDictionaryEnumerator<TKey, TValue>(table);
-        }
+		}
 		IEnumerator IEnumerable.GetEnumerator()
-        {
+		{
 			return (IEnumerator)GetEnumerator();
-        }
+		}
 
 		// METHOD MADE FOR TESTING - prints the entire hash table structure
 		public void PrintList()
-        {
+		{
 			StringBuilder output = new StringBuilder();
 			int index = 0;
 
 			foreach(LinkedList<KeyValuePair<TKey, TValue>> bucket in table)
-            {
+			{
 				output.Append($"[{index}]-> ");
 
 				if(bucket != null)
-                {
+				{
 					foreach(KeyValuePair<TKey, TValue> pair in bucket)
 					{
 						output.Append($"<{pair.Key.ToString()}, {pair.Value.ToString()}>-");
 					}
 				}
 				else
-                {
+				{
 					output.Append("Empty");
-                }
+				}
 
 				output.AppendLine();
 				index++;
-            }
+			}
 
 			Console.WriteLine(output.ToString());
-        }
+		}
 	}
 }

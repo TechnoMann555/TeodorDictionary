@@ -206,6 +206,36 @@ namespace TDictionary
 			return null;
 		}
 
+		// Same as above, but also passes back the linked list the key-value pair node originates from
+		private LinkedListNode<KeyValuePair<TKey, TValue>> GetNodeFromKey(
+			TKey key,
+			out LinkedList<KeyValuePair<TKey, TValue>> listOfOrigin
+		)
+		{
+			listOfOrigin = null;
+			int arrayIndex = this.HashKey(key);
+			LinkedList<KeyValuePair<TKey, TValue>> bucketList = table[arrayIndex];
+
+			// The bucket is empty - the node doesn't exist
+			if(bucketList == null)
+			{
+				return null;
+			}
+
+			LinkedListNode<KeyValuePair<TKey, TValue>> node = bucketList.First;
+			for(int i = 0; i < bucketList.Count; i++, node = node.Next)
+			{
+				// A node with the matching key value was found
+				if(node.Value.Key.Equals(key))
+				{
+					listOfOrigin = bucketList;
+					return node;
+				}
+			}
+
+			return null;
+		}
+
 		// Gets the value from the key-value pair that holds the passed key value
 		public TValue FetchValue(TKey key)
 		{
@@ -232,61 +262,20 @@ namespace TDictionary
 		// Updates the key-value pair's value that has the passed key value
 		public void Update(TKey key, TValue value)
 		{
-			int arrayIndex = this.HashKey(key);
-			LinkedList<KeyValuePair<TKey, TValue>> bucketList = table[arrayIndex];
+			LinkedList<KeyValuePair<TKey, TValue>> list = null;
+			LinkedListNode<KeyValuePair<TKey, TValue>> nodeToUpdate = this.GetNodeFromKey(key, out list);
 
-			// The bucket is empty
-			if(bucketList == null)
-			{
+			// No matching key-value pair was found
+			if(nodeToUpdate == null)
+            {
 				throw new ArgumentException("An item with the given key does not exist!");
 			}
 
 			KeyValuePair<TKey, TValue> updatedPair = new KeyValuePair<TKey, TValue>(key, value);
 
-			// The bucket contains one pair - check if the key matches
-			if(bucketList.Count == 1)
-			{
-				// LinkedList<T>.Remove(T) is an O(n) operation, since it performs a linear search first,
-				// while LinkedList<T>.Remove<LinkedListNode<T>> is an O(1) operation,
-				// which is why this method works with LinkedListNode-s instead of KeyValuePair-s
-				LinkedListNode<KeyValuePair<TKey, TValue>> onlyPair = bucketList.First;
-
-				// The pair's key doesn't match the passed key value
-				if(!onlyPair.Value.Key.Equals(key))
-				{
-					throw new ArgumentException("An item with the given key does not exist!");
-				}
-
-				// The key matches - insert a new pair and remove the original
-				bucketList.AddLast(updatedPair);
-				bucketList.Remove(onlyPair);
-			}
-
-			// The bucket contains multiple pairs - check if there's one that matches
-			else
-			{
-				LinkedListNode<KeyValuePair<TKey, TValue>> node = bucketList.First;
-
-				// The for-each loop iterates through a linked list's node values (key-value pairs),
-				// which is why this iteration uses the for loop to iterate through nodes themselves
-				for(
-					int i = 0;
-					i < bucketList.Count;
-					i++, node = node.Next
-				)
-				{
-					// The key matches - insert a new pair and remove the original
-					if(node.Value.Key.Equals(key))
-					{
-						bucketList.AddAfter(node, updatedPair);
-						bucketList.Remove(node);
-						return;
-					}
-				}
-
-				// No matching pair has been found
-				throw new ArgumentException("An item with the given key does not exist!");
-			}
+			// Add the new key-value pair after the old one, then remove the old one
+			list.AddAfter(nodeToUpdate, updatedPair);
+			list.Remove(nodeToUpdate);
 		}
 
 		// DELETION

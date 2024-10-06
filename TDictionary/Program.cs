@@ -56,6 +56,7 @@ namespace TDictionary
             dict.Update("WXMAX", 100);
             dict.Update("ZNPKP", 200);
             dict.Update("OVBDF", 200);
+            dict.PrintList();
 
             try
             {

@@ -26,16 +26,7 @@ namespace TDictionary
         }
 
         /* 
-            This method works by first iterating through the hash-table array
-            until it finds a bucket that contains key-value pairs (a linked list).
-
-            Then, when a bucket is found, the method iterates through its linked list
-            until it reaches the end of the list, at which point it looks for the next
-            bucket with key-value pairs.
-
-            The two steps are repeated until the end of the dictionary collection is reached.
-
-            Essentialy, it iterates through all the key-value pairs in the dictionary
+            Essentialy, this method iterates through all the key-value pairs in the dictionary
             as if all of them were connected in a single linked list.
         */
         public bool MoveNext()

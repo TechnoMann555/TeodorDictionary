@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Text;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace TDictionary
 {
-	public class TeodorDictionary<TKey, TValue>
+	public class TeodorDictionary<TKey, TValue> : IEnumerable
 	{
 		private int itemCount = 0;
 		private int usedBuckets = 0;
@@ -307,6 +308,16 @@ namespace TDictionary
 					this.Insert(key, value);
                 }
             }
+        }
+
+		// IEnumerable implementation
+		public TeodorDictionaryEnumerator<TKey, TValue> GetEnumerator()
+        {
+			return new TeodorDictionaryEnumerator<TKey, TValue>(table);
+        }
+		IEnumerator IEnumerable.GetEnumerator()
+        {
+			return (IEnumerator)GetEnumerator();
         }
 
 		// METHOD MADE FOR TESTING - prints the entire hash table structure

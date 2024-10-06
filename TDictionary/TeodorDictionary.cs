@@ -45,10 +45,7 @@ namespace TDictionary
 
 			// In order to properly calculate the array index from the hash code
 			// using the modulo operator, the resulting hash value must be a positive integer.
-			if(hashingResult < 0)
-				return hashingResult * (-1);
-			else
-				return hashingResult;
+			return hashingResult * ((hashingResult < 0) ? (-1) : 1);
         }
 
 		// Calculates the table array index from a given key value
@@ -66,8 +63,10 @@ namespace TDictionary
 
 			// If the bucket is empty, create a new linked list
 			if(table[arrayIndex] == null)
+            {
 				table[arrayIndex] = new LinkedList<KeyValuePair<TKey, TValue>>();
-
+			}
+				
 			LinkedList<KeyValuePair<TKey, TValue>> bucketList = table[arrayIndex];
 
 			// Bucket list is empty - add the first node
@@ -76,14 +75,15 @@ namespace TDictionary
 				bucketList.AddFirst(newPair);
 				usedBuckets++;
 			}
-
 			else
 			{
 				// Check if a key-value pair with the passed key value already exists in the bucket
 				foreach(KeyValuePair<TKey, TValue> pair in bucketList)
 				{
 					if(pair.Key.Equals(newPair.Key))
+                    {
 						throw new ArgumentException("An item with the given key already exists!");
+					}
 				}
 				// Add the new pair to the end of the list
 				bucketList.AddLast(newPair);
@@ -97,19 +97,20 @@ namespace TDictionary
 		public TValue GetValue(TKey key)
         {
 			int arrayIndex = this.HashKey(key);
+			LinkedList<KeyValuePair<TKey, TValue>> bucketList = table[arrayIndex];
 
 			// The bucket is empty
-			if(table[arrayIndex] == null)
+			if(bucketList == null)
+            {
 				throw new ArgumentException("An item with the given key does not exist!");
-
-			LinkedList<KeyValuePair<TKey, TValue>> bucketList = table[arrayIndex];
+			}
 
 			// Only one item is in the bucket - therefore, no collision had occured 
 			if(bucketList.Count == 1)
             {
 				return bucketList.First.Value.Value;
             }
-			
+
 			// Multiple items are in the same bucket - therefore,
 			// collisions had occured, so search for the matching key-value pair
 			else
@@ -117,7 +118,9 @@ namespace TDictionary
 				foreach(KeyValuePair<TKey, TValue> pair in bucketList)
                 {
 					if(pair.Key.Equals(key))
+                    {
 						return pair.Value;
+					}
 				}
 
 				// No matching pair has been found
@@ -141,7 +144,9 @@ namespace TDictionary
 			else if(bucketList.Count == 1)
 			{
 				if(bucketList.First.Value.Key.Equals(key))
+                {
 					return true;
+				}
 			}
 
 			// The bucket contains multiple pairs - check if there's one that matches
@@ -150,7 +155,9 @@ namespace TDictionary
 				foreach(KeyValuePair<TKey, TValue> pair in bucketList)
                 {
 					if(pair.Key.Equals(key))
+                    {
 						return true;
+					}
                 }
 			}
 
@@ -166,7 +173,9 @@ namespace TDictionary
 
 			// The bucket is empty
 			if(bucketList == null)
+            {
 				throw new ArgumentException("An item with the given key does not exist!");
+			}
 
 			KeyValuePair<TKey, TValue> updatedPair = new KeyValuePair<TKey, TValue>(key, value);
 
@@ -175,12 +184,14 @@ namespace TDictionary
 			{
 				// LinkedList<T>.Remove(T) is an O(n) operation, since it performs a linear search first,
 				// while LinkedList<T>.Remove<LinkedListNode<T>> is an O(1) operation,
-				// which is why this method works with LinkedListNodes
+				// which is why this method works with LinkedListNode-s instead of KeyValuePair-s
 				LinkedListNode<KeyValuePair<TKey, TValue>> onlyPair = bucketList.First;
 
 				// The pair's key doesn't match the passed key value
 				if(!onlyPair.Value.Key.Equals(key))
+                {
 					throw new ArgumentException("An item with the given key does not exist!");
+				}
 
 				// The key matches - insert a new pair and remove the original
 				bucketList.AddLast(updatedPair);
@@ -221,7 +232,7 @@ namespace TDictionary
 			int arrayIndex = this.HashKey(key);
 			LinkedList<KeyValuePair<TKey, TValue>> bucketList = table[arrayIndex];
 
-			// The bucket is empty - therefore, there's no pair to delete
+			// The bucket is empty - there's no pair to delete
 			if(bucketList == null)
 			{
 				return false;
@@ -268,8 +279,6 @@ namespace TDictionary
 			return false;
 		}
 
-
-
 		// METHOD MADE FOR TESTING - prints the entire hash table structure
 		public void PrintList()
         {
@@ -291,6 +300,7 @@ namespace TDictionary
                 {
 					output.Append("Empty");
                 }
+
 				output.AppendLine();
 				index++;
             }

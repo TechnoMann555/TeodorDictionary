@@ -58,8 +58,30 @@ namespace TDictionary
 		// Rehashes the hash-table when any bucket's item count passes the defined threshold
 		private void Rehash()
 		{
+			LinkedList<KeyValuePair<TKey, TValue>>[] newTable = new LinkedList<KeyValuePair<TKey, TValue>>[table.Length];
+			int newUsedBucketCount = 0;
 
-		}
+			foreach(KeyValuePair<TKey, TValue> pair in this)
+            {
+				bool listCreated;
+				InsertStatusCode returnStatus = this.InsertIntoHashTable(pair.Key, pair.Value, newTable, out listCreated);
+
+                switch(returnStatus)
+                {
+					case InsertStatusCode.DuplicateKey:
+					throw new ArgumentException("An item with the given key already exists!");
+					break;
+                }
+
+				if(listCreated)
+                {
+					newUsedBucketCount++;
+                }
+            }
+
+			table = newTable;
+			usedBuckets = newUsedBucketCount;
+        }
 
 		// INSERTION
 

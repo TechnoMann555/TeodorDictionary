@@ -372,6 +372,15 @@ namespace TDictionary
 			return false;
 		}
 
+		// Clears the entire dictionary of all linked lists and key-value pairs
+		public void Clear()
+        {
+			for(int i = 0; i < this.table.Length; i++)
+			{
+				this.table[i] = null;
+			}
+		}
+
 		public TValue this[TKey key]
 		{
 			get

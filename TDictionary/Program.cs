@@ -116,6 +116,15 @@ namespace TDictionary
             dict.PrintList();
             Console.WriteLine(dict.Count);
 
+            Console.WriteLine("=== CLEARING ===");
+            dict = new TeodorDictionary<string, int>(10);
+            dict["WXMAX"] = 100;
+            dict["ZNPKP"] = 200;
+            dict["OVBDF"] = 200;
+            dict.PrintList();
+            dict.Clear();
+            dict.PrintList();
+
             Console.ReadLine();
         }
     }

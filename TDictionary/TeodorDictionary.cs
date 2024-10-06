@@ -181,80 +181,51 @@ namespace TDictionary
 		}
 
 		// FETCHING
-		// Gets the value from the key-value pair that holds the passed key value
-		public TValue FetchValue(TKey key)
-		{
+		// Returns a key-value pair node from the hash-table linked list whose key matches the passed key
+		private LinkedListNode<KeyValuePair<TKey, TValue>> GetNodeFromKey(TKey key)
+        {
 			int arrayIndex = this.HashKey(key);
 			LinkedList<KeyValuePair<TKey, TValue>> bucketList = table[arrayIndex];
 
-			// The bucket is empty
+			// The bucket is empty - the node doesn't exist
 			if(bucketList == null)
 			{
+				return null;
+			}
+
+			LinkedListNode<KeyValuePair<TKey, TValue>> node = bucketList.First;
+			for(int i = 0; i < bucketList.Count; i++, node = node.Next)
+            {
+				// A node with the matching key value was found
+				if(node.Value.Key.Equals(key))
+                {
+					return node;
+				}
+            }
+
+			return null;
+		}
+
+		// Gets the value from the key-value pair that holds the passed key value
+		public TValue FetchValue(TKey key)
+		{
+			LinkedListNode<KeyValuePair<TKey, TValue>> node = this.GetNodeFromKey(key);
+
+			// No matching key-value pair was found
+			if(node == null)
+            {
 				throw new ArgumentException("An item with the given key does not exist!");
 			}
 
-			// Only one item is in the bucket - check if the key matches
-			if(bucketList.Count == 1)
-			{
-				if(!bucketList.First.Value.Key.Equals(key))
-				{
-					throw new ArgumentException("An item with the given key does not exist!");
-				}
-
-				return bucketList.First.Value.Value;
-			}
-
-			// Multiple items are in the same bucket - therefore,
-			// collisions had occured, so search for the matching key-value pair
-			else
-			{
-				foreach(KeyValuePair<TKey, TValue> pair in bucketList)
-				{
-					if(pair.Key.Equals(key))
-					{
-						return pair.Value;
-					}
-				}
-
-				// No matching pair has been found
-				throw new ArgumentException("An item with the given key does not exist!");
-			}
+			// A matching key-value pair was found
+			return node.Value.Value;
 		}
 
 		// Checks if a key-value pair exists with the passed key value
 		public bool CheckIfExists(TKey key)
 		{
-			int arrayIndex = this.HashKey(key);
-			LinkedList<KeyValuePair<TKey, TValue>> bucketList = table[arrayIndex];
-
-			// The bucket is empty - therefore, no key exists in it
-			if(bucketList == null)
-			{
-				return false;
-			}
-
-			// The bucket contains one pair - check if the key matches
-			else if(bucketList.Count == 1)
-			{
-				if(bucketList.First.Value.Key.Equals(key))
-				{
-					return true;
-				}
-			}
-
-			// The bucket contains multiple pairs - check if there's one that matches
-			else
-			{
-				foreach(KeyValuePair<TKey, TValue> pair in bucketList)
-				{
-					if(pair.Key.Equals(key))
-					{
-						return true;
-					}
-				}
-			}
-
-			return false;
+			// If the result is null - no pair was found, otherwise, a pair exists
+			return !(GetNodeFromKey(key) == null);
 		}
 
 		// UPDATING

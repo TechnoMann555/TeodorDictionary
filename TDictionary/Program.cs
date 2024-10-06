@@ -10,22 +10,19 @@ namespace TDictionary
     {
         static void Main(string[] args)
         {
-            TeodorDictionary<string, int> dict = new TeodorDictionary<string, int>(4);
+            TeodorDictionary<string, int> dict = new TeodorDictionary<string, int>(2);
             dict.PrintList();
 
             dict["Belgrade"] = 100;
-            dict.PrintList();
-            Console.WriteLine($"Item count: {dict.Count}; Bucket count: {dict.UsedBuckets}\n");
-
+            dict["BElgrade"] = 100;
             dict["Novi Sad"] = 200;
+            dict["Kragujevac"] = 300;
             dict.PrintList();
-            Console.WriteLine($"Item count: {dict.Count}; Bucket count: {dict.UsedBuckets}\n");
 
-            dict["BElgrade"] = 200;
-            dict.PrintList();
-            Console.WriteLine($"Item count: {dict.Count}; Bucket count: {dict.UsedBuckets}\n");
-
-            dict.Insert("Belgrade", 500);
+            foreach(KeyValuePair<string, int> pair in dict)
+            {
+                Console.WriteLine(pair);
+            }
 
             Console.ReadLine();
         }

@@ -10,7 +10,7 @@ namespace TDictionary
 		private int itemCount = 0;
 		private int usedBuckets = 0;
 
-		private const int maxBucketCount = 7;
+		private const double maxLoadFactor = 0.7;
 		private const int defaultInitialSize = 10;
 
 		// The Seperate Chaining collision resolution policy requires us
@@ -30,11 +30,11 @@ namespace TDictionary
 		public int Count
         { get { return itemCount; } }
 
-		public int UsedBuckets
-		{ get { return usedBuckets; } }
-
 		private int TotalBucketCount
         { get { return table.Length; } }
+
+		private double LoadFactor
+        { get { return (double)usedBuckets / TotalBucketCount; } }
 
 		
 		// Gets the hash code of a given object
@@ -55,45 +55,26 @@ namespace TDictionary
 			return this.HashFunction(key) % TotalBucketCount;
         }
 
-		// Rehashes the hash-table when any bucket's item count passes the defined threshold
-		private void Rehash()
-        {
-			
-		}
-
 		// INSERTION
-
-		private enum InsertStatusCode
-        {
-			OK, // Key-value pair successfully inserted
-			DuplicateKey // The key already exists in the hash table
-		}
-
-
-		private InsertStatusCode InsertIntoHashTable(
-			TKey key,
-			TValue value,
-			LinkedList<KeyValuePair<TKey, TValue>>[] insertionTable,
-			out bool listCreated
-		)
+		// Inserts a new key-value pair into the hash table
+		public void Insert(TKey key, TValue value)
         {
 			int arrayIndex = this.HashKey(key);
 			KeyValuePair<TKey, TValue> newPair = new KeyValuePair<TKey, TValue>(key, value);
-			listCreated = false;
 
 			// If the bucket is empty, create a new linked list
-			if(insertionTable[arrayIndex] == null)
-			{
-				insertionTable[arrayIndex] = new LinkedList<KeyValuePair<TKey, TValue>>();
-				listCreated = true;
+			if(table[arrayIndex] == null)
+            {
+				table[arrayIndex] = new LinkedList<KeyValuePair<TKey, TValue>>();
 			}
-
-			LinkedList<KeyValuePair<TKey, TValue>> bucketList = insertionTable[arrayIndex];
+				
+			LinkedList<KeyValuePair<TKey, TValue>> bucketList = table[arrayIndex];
 
 			// Bucket list is empty - add the first node
 			if(bucketList.Count == 0)
 			{
 				bucketList.AddFirst(newPair);
+				usedBuckets++;
 			}
 			else
 			{
@@ -101,37 +82,15 @@ namespace TDictionary
 				foreach(KeyValuePair<TKey, TValue> pair in bucketList)
 				{
 					if(pair.Key.Equals(newPair.Key))
-					{
-						return InsertStatusCode.DuplicateKey;
+                    {
+						throw new ArgumentException("An item with the given key already exists!");
 					}
 				}
 				// Add the new pair to the end of the list
 				bucketList.AddLast(newPair);
 			}
 
-			return InsertStatusCode.OK;
-		}
-
-		// Inserts a new key-value pair into the dictionary
-		public void Insert(TKey key, TValue value)
-        {
-			bool listCreated;
-			InsertStatusCode returnStatus = this.InsertIntoHashTable(key, value, this.table, out listCreated);
-
-			switch(returnStatus)
-            {
-				case InsertStatusCode.OK:
-				itemCount++;
-				break;
-				case InsertStatusCode.DuplicateKey:
-				throw new ArgumentException("An item with the given key already exists!");
-				break;
-            }
-
-			if(listCreated)
-            {
-				usedBuckets++;
-            }
+			itemCount++;
         }
 
 		// FETCHING

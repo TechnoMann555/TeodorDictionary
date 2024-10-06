@@ -10,22 +10,19 @@ namespace TDictionary
     {
         static void Main(string[] args)
         {
-            TeodorDictionary<string, int> dict = new TeodorDictionary<string, int>(1);
+            TeodorDictionary<string, int> dict = new TeodorDictionary<string, int>(2);
             dict.PrintList();
 
-            Console.WriteLine("=== Insertion ===");
-            dict["Beograd"] = 100;
+            dict["Belgrade"] = 100;
+            dict["BElgrade"] = 100;
+            dict["Novi Sad"] = 200;
+            dict["Kragujevac"] = 300;
             dict.PrintList();
 
-            Console.WriteLine("=== Updating ===");
-            dict["Beograd"] = 200;
-            dict.PrintList();
-
-            Console.WriteLine("=== Fetching ===");
-            Console.WriteLine($"Beograd - {dict["Beograd"]}");
-            dict.PrintList();
-
-            Console.WriteLine(dict["AAAAAAAAAAAAAAAAAAA"].ToString());
+            foreach(KeyValuePair<string, int> pair in dict)
+            {
+                Console.WriteLine(pair);
+            }
 
             Console.ReadLine();
         }

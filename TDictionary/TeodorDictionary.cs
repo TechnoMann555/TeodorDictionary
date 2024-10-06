@@ -214,6 +214,62 @@ namespace TDictionary
 			}
 		}
 
+		// DELETION
+		// Deletes the key-value pair that has the passed key value
+		public bool Remove(TKey key)
+        {
+			int arrayIndex = this.HashKey(key);
+			LinkedList<KeyValuePair<TKey, TValue>> bucketList = table[arrayIndex];
+
+			// The bucket is empty - therefore, there's no pair to delete
+			if(bucketList == null)
+			{
+				return false;
+			}
+
+			// The bucket contains one pair - check if the key matches
+			else if(bucketList.Count == 1)
+			{
+				if(bucketList.First.Value.Key.Equals(key))
+                {
+					// There's no need for a bucket to store an empty linked list
+					table[arrayIndex] = null;
+					itemCount--;
+					usedBuckets--;
+
+					return true;
+				}
+			}
+
+			// The bucket contains multiple pairs - check if there's one that matches
+			else
+			{
+				LinkedListNode<KeyValuePair<TKey, TValue>> node = bucketList.First;
+				
+				// Iterate through linked list nodes
+				for(
+					int i = 0;
+					i < bucketList.Count;
+					i++, node = node.Next
+				)
+				{
+					// The key matches - remove the pair
+					if(node.Value.Key.Equals(key))
+					{
+						bucketList.Remove(node);
+						itemCount--;
+
+						return true;
+					}
+				}
+			}
+
+			// No matching pair has been found
+			return false;
+		}
+
+
+
 		// METHOD MADE FOR TESTING - prints the entire hash table structure
 		public void PrintList()
         {

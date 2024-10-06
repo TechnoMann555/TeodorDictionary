@@ -28,6 +28,7 @@ namespace TDictionary
 
 		public int Count
 		{ get { return itemCount; } }
+
 		private int TotalBucketCount
 		{ get { return table.Length; } }
 
@@ -181,195 +182,131 @@ namespace TDictionary
 		}
 
 		// FETCHING
-		// Gets the value from the key-value pair that holds the passed key value
-		public TValue FetchValue(TKey key)
-		{
+		// Returns a key-value pair node from the hash-table linked list whose key matches the passed key
+		private LinkedListNode<KeyValuePair<TKey, TValue>> GetNodeFromKey(TKey key)
+        {
 			int arrayIndex = this.HashKey(key);
 			LinkedList<KeyValuePair<TKey, TValue>> bucketList = table[arrayIndex];
 
-			// The bucket is empty
+			// The bucket is empty - the node doesn't exist
 			if(bucketList == null)
 			{
+				return null;
+			}
+
+			LinkedListNode<KeyValuePair<TKey, TValue>> node = bucketList.First;
+			for(int i = 0; i < bucketList.Count; i++, node = node.Next)
+            {
+				// A node with the matching key value was found
+				if(node.Value.Key.Equals(key))
+                {
+					return node;
+				}
+            }
+
+			return null;
+		}
+
+		// Overload - same as above, but also passes back the index where the key-value pair node was found
+		private LinkedListNode<KeyValuePair<TKey, TValue>> GetNodeFromKey(
+			TKey key,
+			out int index
+		)
+		{
+			index = -1;
+			int arrayIndex = this.HashKey(key);
+			LinkedList<KeyValuePair<TKey, TValue>> bucketList = table[arrayIndex];
+
+			// The bucket is empty - the node doesn't exist
+			if(bucketList == null)
+			{
+				return null;
+			}
+
+			LinkedListNode<KeyValuePair<TKey, TValue>> node = bucketList.First;
+			for(int i = 0; i < bucketList.Count; i++, node = node.Next)
+			{
+				// A node with the matching key value was found
+				if(node.Value.Key.Equals(key))
+				{
+					index = arrayIndex;
+					return node;
+				}
+			}
+
+			return null;
+		}
+
+		// Gets the value from the key-value pair that holds the passed key value
+		public TValue FetchValue(TKey key)
+		{
+			LinkedListNode<KeyValuePair<TKey, TValue>> node = this.GetNodeFromKey(key);
+
+			// No matching key-value pair was found
+			if(node == null)
+            {
 				throw new ArgumentException("An item with the given key does not exist!");
 			}
 
-			// Only one item is in the bucket - check if the key matches
-			if(bucketList.Count == 1)
-			{
-				if(!bucketList.First.Value.Key.Equals(key))
-				{
-					throw new ArgumentException("An item with the given key does not exist!");
-				}
-
-				return bucketList.First.Value.Value;
-			}
-
-			// Multiple items are in the same bucket - therefore,
-			// collisions had occured, so search for the matching key-value pair
-			else
-			{
-				foreach(KeyValuePair<TKey, TValue> pair in bucketList)
-				{
-					if(pair.Key.Equals(key))
-					{
-						return pair.Value;
-					}
-				}
-
-				// No matching pair has been found
-				throw new ArgumentException("An item with the given key does not exist!");
-			}
+			// A matching key-value pair was found
+			return node.Value.Value;
 		}
 
 		// Checks if a key-value pair exists with the passed key value
 		public bool CheckIfExists(TKey key)
 		{
-			int arrayIndex = this.HashKey(key);
-			LinkedList<KeyValuePair<TKey, TValue>> bucketList = table[arrayIndex];
-
-			// The bucket is empty - therefore, no key exists in it
-			if(bucketList == null)
-			{
-				return false;
-			}
-
-			// The bucket contains one pair - check if the key matches
-			else if(bucketList.Count == 1)
-			{
-				if(bucketList.First.Value.Key.Equals(key))
-				{
-					return true;
-				}
-			}
-
-			// The bucket contains multiple pairs - check if there's one that matches
-			else
-			{
-				foreach(KeyValuePair<TKey, TValue> pair in bucketList)
-				{
-					if(pair.Key.Equals(key))
-					{
-						return true;
-					}
-				}
-			}
-
-			return false;
+			// If the result is null - no pair was found, otherwise, a pair exists
+			return !(GetNodeFromKey(key) == null);
 		}
 
 		// UPDATING
 		// Updates the key-value pair's value that has the passed key value
 		public void Update(TKey key, TValue value)
 		{
-			int arrayIndex = this.HashKey(key);
-			LinkedList<KeyValuePair<TKey, TValue>> bucketList = table[arrayIndex];
+			int tableIndex;
+			LinkedListNode<KeyValuePair<TKey, TValue>> nodeToUpdate = this.GetNodeFromKey(key, out tableIndex);
 
-			// The bucket is empty
-			if(bucketList == null)
-			{
+			// No matching key-value pair was found
+			if(nodeToUpdate == null)
+            {
 				throw new ArgumentException("An item with the given key does not exist!");
 			}
-
+			
+			LinkedList<KeyValuePair<TKey, TValue>> list = this.table[tableIndex];
 			KeyValuePair<TKey, TValue> updatedPair = new KeyValuePair<TKey, TValue>(key, value);
 
-			// The bucket contains one pair - check if the key matches
-			if(bucketList.Count == 1)
-			{
-				// LinkedList<T>.Remove(T) is an O(n) operation, since it performs a linear search first,
-				// while LinkedList<T>.Remove<LinkedListNode<T>> is an O(1) operation,
-				// which is why this method works with LinkedListNode-s instead of KeyValuePair-s
-				LinkedListNode<KeyValuePair<TKey, TValue>> onlyPair = bucketList.First;
-
-				// The pair's key doesn't match the passed key value
-				if(!onlyPair.Value.Key.Equals(key))
-				{
-					throw new ArgumentException("An item with the given key does not exist!");
-				}
-
-				// The key matches - insert a new pair and remove the original
-				bucketList.AddLast(updatedPair);
-				bucketList.Remove(onlyPair);
-			}
-
-			// The bucket contains multiple pairs - check if there's one that matches
-			else
-			{
-				LinkedListNode<KeyValuePair<TKey, TValue>> node = bucketList.First;
-
-				// The for-each loop iterates through a linked list's node values (key-value pairs),
-				// which is why this iteration uses the for loop to iterate through nodes themselves
-				for(
-					int i = 0;
-					i < bucketList.Count;
-					i++, node = node.Next
-				)
-				{
-					// The key matches - insert a new pair and remove the original
-					if(node.Value.Key.Equals(key))
-					{
-						bucketList.AddAfter(node, updatedPair);
-						bucketList.Remove(node);
-						return;
-					}
-				}
-
-				// No matching pair has been found
-				throw new ArgumentException("An item with the given key does not exist!");
-			}
+			// Add the new key-value pair after the old one, then remove the old one
+			list.AddAfter(nodeToUpdate, updatedPair);
+			list.Remove(nodeToUpdate);
 		}
 
 		// DELETION
 		// Deletes the key-value pair that has the passed key value
 		public bool Remove(TKey key)
 		{
-			int arrayIndex = this.HashKey(key);
-			LinkedList<KeyValuePair<TKey, TValue>> bucketList = table[arrayIndex];
+			int tableIndex;
+			LinkedListNode<KeyValuePair<TKey, TValue>> node = this.GetNodeFromKey(key, out tableIndex);
 
-			// The bucket is empty - there's no pair to delete
-			if(bucketList == null)
+			// The node doesn't exist - there's no pair to delete
+			if(node == null)
 			{
 				return false;
 			}
 
-			// The bucket contains one pair - check if the key matches
-			else if(bucketList.Count == 1)
-			{
-				if(bucketList.First.Value.Key.Equals(key))
-				{
-					// There's no need for a bucket to store an empty linked list
-					table[arrayIndex] = null;
-					itemCount--;
-					usedBuckets--;
+			LinkedList<KeyValuePair<TKey, TValue>> list = this.table[tableIndex];
 
-					return true;
-				}
-			}
-
-			// The bucket contains multiple pairs - check if there's one that matches
+			if(node.Previous != null || node.Next != null)
+            {
+				list.Remove(node);
+            }
 			else
-			{
-				LinkedListNode<KeyValuePair<TKey, TValue>> node = bucketList.First;
+            {
+				table[tableIndex] = null;
+				usedBuckets--;
+            }
 
-				// Iterate through linked list nodes
-				for(
-					int i = 0;
-					i < bucketList.Count;
-					i++, node = node.Next
-				)
-				{
-					// The key matches - remove the pair
-					if(node.Value.Key.Equals(key))
-					{
-						bucketList.Remove(node);
-						itemCount--;
-
-						return true;
-					}
-				}
-			}
-
-			// No matching pair has been found
-			return false;
+			itemCount--;
+			return true;
 		}
 
 		// Clears the entire dictionary of all linked lists and key-value pairs

@@ -56,6 +56,7 @@ namespace TDictionary
             dict.Update("WXMAX", 100);
             dict.Update("ZNPKP", 200);
             dict.Update("OVBDF", 200);
+            dict.PrintList();
 
             try
             {
@@ -84,7 +85,7 @@ namespace TDictionary
 
             dict["OVBDF"] = 1;
             dict.PrintList();
-            
+
             Console.WriteLine("=== FETCHING ===");
             Console.WriteLine(dict["WXMAX"]);
             Console.WriteLine(dict["ZNPKP"]);
@@ -114,7 +115,6 @@ namespace TDictionary
             dict["NJXAU"] = 300;
 
             dict.PrintList();
-            Console.WriteLine(dict.Count);
 
             Console.WriteLine("=== CLEARING ===");
             dict = new TeodorDictionary<string, int>(10);

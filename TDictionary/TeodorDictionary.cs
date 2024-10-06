@@ -105,9 +105,14 @@ namespace TDictionary
 				throw new ArgumentException("An item with the given key does not exist!");
 			}
 
-			// Only one item is in the bucket - therefore, no collision had occured 
+			// Only one item is in the bucket - check if the key matches
 			if(bucketList.Count == 1)
             {
+				if(!bucketList.First.Value.Key.Equals(key))
+                {
+					throw new ArgumentException("An item with the given key does not exist!");
+				}
+
 				return bucketList.First.Value.Value;
             }
 
@@ -278,6 +283,31 @@ namespace TDictionary
 			// No matching pair has been found
 			return false;
 		}
+
+		public TValue this[TKey key]
+        {
+			get
+            {
+				return this.GetValue(key);
+            }
+
+			// Whether we insert or update a key-value pair depends
+			// on if the key-value pair exists in the table or not
+            set
+            {
+				// If the key-value pair exists - update it
+				if(this.CheckIfExists(key))
+                {
+					this.Update(key, value);
+                }
+
+                // If it doesn't exist - insert it
+				else
+                {
+					this.Insert(key, value);
+                }
+            }
+        }
 
 		// METHOD MADE FOR TESTING - prints the entire hash table structure
 		public void PrintList()

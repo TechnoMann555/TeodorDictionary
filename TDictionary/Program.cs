@@ -11,28 +11,22 @@ namespace TDictionary
         static void Main(string[] args)
         {
             TeodorDictionary<string, int> dict = new TeodorDictionary<string, int>(1);
-
-            dict.Insert("Beograd", 1000000);
-            dict.Insert("Novi Sad", 1500000);
-            dict.Insert("Novi SAd", 1500000);
-            dict.Insert("Jovanovac", 2000000);
-
             dict.PrintList();
-            Console.WriteLine(dict.Remove("Dobrovac"));
 
+            Console.WriteLine("=== Insertion ===");
+            dict["Beograd"] = 100;
             dict.PrintList();
-            Console.WriteLine(dict.Remove("Jovanovac"));
 
+            Console.WriteLine("=== Updating ===");
+            dict["Beograd"] = 200;
             dict.PrintList();
-            Console.WriteLine(dict.Remove("Novi SAD"));
 
+            Console.WriteLine("=== Fetching ===");
+            Console.WriteLine($"Beograd - {dict["Beograd"]}");
             dict.PrintList();
-            Console.WriteLine(dict.Remove("BEograd"));
 
-            dict.PrintList();
-            Console.WriteLine(dict.Remove("Novi Sad"));
+            Console.WriteLine(dict["AAAAAAAAAAAAAAAAAAA"].ToString());
 
-            dict.PrintList();
             Console.ReadLine();
         }
     }

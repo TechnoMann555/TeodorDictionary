@@ -7,10 +7,11 @@ namespace TDictionary
 {
 	public class TeodorDictionary<TKey, TValue> : IEnumerable
 	{
-		private int itemCount = 0;
+		// Currently not utilized in any method - perhaps it could be useful in some future version
 		private int usedBuckets = 0;
+		private int itemCount = 0;
 
-		private const int maxBucketItemCount = 7;
+		private const int maxBucketItemCount = 10;
 		private const int defaultInitialSize = 10;
 
 		// The Seperate Chaining collision resolution policy requires us
@@ -106,7 +107,7 @@ namespace TDictionary
 			TValue value,
 			LinkedList<KeyValuePair<TKey, TValue>>[] insertionTable,
 			out bool listCreated, // Indicates whether a new linked list was created in a bucket
-			out int bucketListItemCount
+			out int bucketListItemCount // Returns the new bucket list item count where the item was inserted
 		)
 		{
 			int arrayIndex = this.GetTableIndex(key, insertionTable.Length);
@@ -129,6 +130,7 @@ namespace TDictionary
 			{
 				bucketList.AddFirst(newPair);
 			}
+			// Bucket list contains nodes - add the new node at the end of the list
 			else
 			{
 				// Check if a key-value pair with the passed key value already exists in the bucket
@@ -163,10 +165,10 @@ namespace TDictionary
 			switch(returnStatus)
 			{
 				case InsertStatusCode.OK:
-				itemCount++;
+					itemCount++;
 				break;
 				case InsertStatusCode.DuplicateKey:
-				throw new ArgumentException("An item with the given key already exists!");
+					throw new ArgumentException("An item with the given key already exists!");
 				break;
 			}
 
@@ -182,11 +184,12 @@ namespace TDictionary
 		}
 
 		// FETCHING
-		// Returns a key-value pair node from the hash-table linked list whose key matches the passed key
+		// Returns a key-value pair node from the hash-table linked list
+		// whose key matches the passed key, or null if there is no match
 		private LinkedListNode<KeyValuePair<TKey, TValue>> GetNodeFromKey(TKey key)
         {
 			int arrayIndex = this.HashKey(key);
-			LinkedList<KeyValuePair<TKey, TValue>> bucketList = table[arrayIndex];
+			LinkedList<KeyValuePair<TKey, TValue>> bucketList = this.table[arrayIndex];
 
 			// The bucket is empty - the node doesn't exist
 			if(bucketList == null)
@@ -194,6 +197,8 @@ namespace TDictionary
 				return null;
 			}
 
+			// Iterate through the bucket linked list nodes and if
+			// a node with a matching key is found, return it
 			LinkedListNode<KeyValuePair<TKey, TValue>> node = bucketList.First;
 			for(int i = 0; i < bucketList.Count; i++, node = node.Next)
             {
@@ -204,10 +209,12 @@ namespace TDictionary
 				}
             }
 
+			// No node with a matching key was found
 			return null;
 		}
 
-		// Overload - same as above, but also passes back the index where the key-value pair node was found
+		// Overload - same as above, but also passes back the index in the
+		// hash-table array where the key-value pair node was found
 		private LinkedListNode<KeyValuePair<TKey, TValue>> GetNodeFromKey(
 			TKey key,
 			out int index
@@ -223,6 +230,8 @@ namespace TDictionary
 				return null;
 			}
 
+			// Iterate through the bucket linked list nodes and if a node
+			// with a matching key is found, return it alongside the table array index
 			LinkedListNode<KeyValuePair<TKey, TValue>> node = bucketList.First;
 			for(int i = 0; i < bucketList.Count; i++, node = node.Next)
 			{
@@ -234,6 +243,7 @@ namespace TDictionary
 				}
 			}
 
+			// No node with a matching key was found
 			return null;
 		}
 
@@ -256,7 +266,7 @@ namespace TDictionary
 		public bool CheckIfExists(TKey key)
 		{
 			// If the result is null - no pair was found, otherwise, a pair exists
-			return !(GetNodeFromKey(key) == null);
+			return GetNodeFromKey(key) != null;
 		}
 
 		// UPDATING
@@ -295,10 +305,14 @@ namespace TDictionary
 
 			LinkedList<KeyValuePair<TKey, TValue>> list = this.table[tableIndex];
 
+			// If the node to delete has either a previous or next node or both,
+			// that means it's not the only node in the list, so just remove it
 			if(node.Previous != null || node.Next != null)
             {
 				list.Remove(node);
             }
+			// The node has no previous or next node - it's the only node.
+			// Therefore, there's no need for the table bucket to hold an empty list.
 			else
             {
 				table[tableIndex] = null;
@@ -318,6 +332,7 @@ namespace TDictionary
 			}
 		}
 
+		// INDEXERS
 		public TValue this[TKey key]
 		{
 			get
@@ -346,7 +361,7 @@ namespace TDictionary
 		// IEnumerable implementation
 		public TeodorDictionaryEnumerator<TKey, TValue> GetEnumerator()
 		{
-			return new TeodorDictionaryEnumerator<TKey, TValue>(table);
+			return new TeodorDictionaryEnumerator<TKey, TValue>(this.table);
 		}
 		IEnumerator IEnumerable.GetEnumerator()
 		{

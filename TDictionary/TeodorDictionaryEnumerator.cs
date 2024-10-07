@@ -74,7 +74,7 @@ namespace TDictionary
 
         public void Reset()
         {
-            curIndex = -1;
+            this.curIndex = -1;
         }
 
         public KeyValuePair<TKey, TValue> Current
@@ -98,7 +98,7 @@ namespace TDictionary
         {
             get
             {
-                return Current;
+                return this.Current;
             }
         }
     }
